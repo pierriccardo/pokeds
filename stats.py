@@ -14,7 +14,8 @@ logger.setup()
 def plot_samples_per_rating(ranges, counts, dir="imgs/"):
     x = [f"{r_min}-{r_max}" for r_min, r_max in ranges]
     plt.figure(figsize=(10, 5))
-    sns.barplot(x=x, y=counts)
+    ax = sns.barplot(x=x, y=counts)
+    ax.bar_label(ax.containers[0], fontsize=7)
     plt.xlabel("ELO Range")
     plt.ylabel("Num. of logs in the DB")
     plt.xticks(rotation=45)
@@ -40,6 +41,7 @@ if __name__ == "__main__":
     db.stats()
     ranges = [
         (800, 900),
+        (900, 1000),
         (1000, 1100),
         (1200, 1300),
         (1300, 1400),
@@ -48,6 +50,12 @@ if __name__ == "__main__":
         (1600, 1700),
         (1700, 1800),
         (1800, 1900),
+        (1900, 2000),
+        (2000, 2100),
+        (2100, 2200),
+        (2200, 2300),
+        (2300, 2400),
+        (2400, 2500),
     ]
     counts = [db.count_logs_by_rating(r_min, r_max) for r_min, r_max in ranges]
     plot_samples_per_rating(ranges, counts)

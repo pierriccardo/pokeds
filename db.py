@@ -55,6 +55,14 @@ class DB:
             logger.debug(f"log ID ({log_id}) already exists.")
         conn.close()
 
+    def exists(self, id: str) -> bool:
+        conn = self.connect()
+        cursor = conn.cursor()
+        cursor.execute(f"SELECT COUNT(*) FROM logs WHERE id == '{id}'")
+        exists = cursor.fetchone()[0] > 0
+        conn.close()
+        return exists
+
     # --------------------------------------------------
     # Statistics
     # --------------------------------------------------
@@ -64,9 +72,13 @@ class DB:
 
         cursor.execute("SELECT COUNT(*) FROM logs")
         count = cursor.fetchone()[0]
-        logger.info("Current stats:")
-        logger.info(f"Current size (bytes): {self.size()}")
+        logger.info("DB Stats:")
+        logger.info(f"Current size {self.size() / 10**9:.2f} GB")
         logger.info(f"Number of logs: {count}")
+
+        cursor.execute("SELECT COUNT(*) FROM logs WHERE rating IS NULL")
+        count = cursor.fetchone()[0]
+        logger.info(f"Number of unrated: {count}")
         conn.close()
 
     def count_logs_by_rating(self, rating_min, rating_max) -> int:

@@ -1,6 +1,7 @@
 .DS_Store
 imgs/
 test.py
+logs.db
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
