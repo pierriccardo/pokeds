@@ -1,12 +1,9 @@
 import os
-import logger
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 from db import DB
-
-logger.setup()
-
 
 # --------------------------------------------------
 # Plotting stats
@@ -23,9 +20,11 @@ def plot_samples_per_rating(ranges, counts, dir="imgs/"):
     plt.savefig(os.path.join(dir, "samples_per_rating"))
 
 
-def plot_samples_per_format(formats, counts, dir="imgs/"):
+def plot_samples_per_format(formats, counts, dir="imgs/", min_samples: int = 200):
+    df = pd.DataFrame({"Format": formats, "Count": counts})
+    df = df[df["Count"] > min_samples]
     plt.figure(figsize=(15, 6))
-    ax = sns.barplot(x=formats, y=counts)
+    ax = sns.barplot(x="Format", y="Count", data=df)
     ax.bar_label(ax.containers[0], fontsize=7)
     plt.xlabel("Format")
     plt.ylabel("Num. of logs in the DB")

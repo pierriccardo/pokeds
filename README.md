@@ -14,28 +14,33 @@ pip install -r requirements.txt
 Then, just run the following command to start the job:
 
 ```bash
-python3 cron.py --wait 30
+python3 cron.py
 ```
-The script save each log from recently played section. Every `--wait` seconds the script will check if there are new logs.
+The script save each log from recently played section.
+
+## Configuration
+You can specify for which format do you want to retrieve the logs. This can be done in `consts.py` file where you can add or remove formats.
 
 ## How it works
-The script `cron.py` will run indefinitely scraping the [recently played section](https://replay.pokemonshowdown.com/) of Pokèmon Showdown website to retrieve battle logs. The recently played section is updated frequently with new battles, thus we need to wait some time to see new data, `--wait` specifies how many seconds to wait before requesting recently played data as a `json` request (battle logs are injected dynamically). If you plan to run this script indefinitely, or in a public server you may want to limit the maximum size of the database, this can be done specifing max size in bytes `--size`, so that if the db size reaches the maximum `cron.py` will stop.
+The script `cron.py` will run indefinitely scraping the [replay section](https://replay.pokemonshowdown.com/), to retrieve battle logs, from three sources:
+- the recently played section, which is updated frequently with new battles.
+- the formats section
+- and via player search (scraping top player names from the [ladder](https://pokemonshowdown.com/ladder))
 
-The `json` contains several information for each battle, we store a few elements:
+The script schedules asynchronous jobs to run periodically and scraping each sources, the replays found are saved in a global queue, then if the replay is not in the database, the actual log is retrieved and saved in database.
+Data about replays is injected dynamically as a `json`. The `json` contains several information for each battle, such as:
 - the `rating` that is the ELO.
 - the `format` of the battle.
 - the `id` which is a unique identifier of the battle `<battle-format>-<battle-id>`.
-
-The unique `id` can be used to retrieve the real battle text `log` searching for the following url:
+Scrapers retrieve these informations, then the unique `id` can be used to retrieve the real battle text `log` searching for the following url:
 
     https://replay.pokemonshowdown.com/<battle-format>-<battle-id>.log
 
 Then, for each battle `id` in the `json` we save the tuple (`id`, `format`, `rating`, `log`) in a sqlite database named by default `logs.db`.
 
-## Additional Commands
+If you plan to run this script indefinitely, or in a public server you may want to limit the maximum size of the database, this can be done specifing max size in bytes `--size`, so that if the db size reaches the maximum `cron.py` will stop.
 
-Scraping by format can be done running the following.
+To change the schedule time for each scraping function you can add the following tags (in seconds):
 ```bash
-python3 cron.py --type format
+python3 --wait.recents 10 --wait.formats 10 --wait.players 20
 ```
-Formats to search for can be specified inside `/const.py`
