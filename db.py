@@ -67,6 +67,7 @@ class DB:
     # Statistics
     # --------------------------------------------------
     def stats(self) -> dict:
+        print("ok")
         conn = self.connect()
         cursor = conn.cursor()
 

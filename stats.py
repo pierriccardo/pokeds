@@ -1,9 +1,14 @@
 import os
+import logger
+import logging
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 
 from db import DB
+
+logger.setup()
+logger = logging.getLogger(__name__)
 
 # --------------------------------------------------
 # Plotting stats
