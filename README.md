@@ -22,10 +22,11 @@ The script save each log from recently played section.
 You can specify for which format do you want to retrieve the logs. This can be done in `consts.py` file where you can add or remove formats.
 
 ## How it works
-The script `cron.py` will run indefinitely scraping the [replay section](https://replay.pokemonshowdown.com/), to retrieve battle logs, from three sources:
+The script `cron.py` will run indefinitely scraping the [replay section](https://replay.pokemonshowdown.com/), to retrieve battle logs, from four sources:
 - the recently played section, which is updated frequently with new battles.
 - the formats section
-- and via player search (scraping top player names from the [ladder](https://pokemonshowdown.com/ladder))
+- via players search scraped from ladders (scraping top player names from the [ladder](https://pokemonshowdown.com/ladder))
+- via players search scraped from online members in the forum
 
 The script schedules asynchronous jobs to run periodically and scraping each sources, the replays found are saved in a global queue, then if the replay is not in the database, the actual log is retrieved and saved in database.
 Data about replays is injected dynamically as a `json`. The `json` contains several information for each battle, such as:

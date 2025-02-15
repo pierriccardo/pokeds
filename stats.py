@@ -17,7 +17,7 @@ def plot_samples_per_rating(ranges, counts, dir="imgs/"):
     x = [f"{r_min}-{r_max}" for r_min, r_max in ranges]
     plt.figure(figsize=(10, 5))
     ax = sns.barplot(x=x, y=counts)
-    ax.bar_label(ax.containers[0], fontsize=7)
+    ax.bar_label(ax.containers[0], fontsize=10)
     plt.xlabel("ELO Range")
     plt.ylabel("Num. of logs in the DB")
     plt.xticks(rotation=45)

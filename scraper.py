@@ -5,8 +5,13 @@ import consts
 import logging
 import requests
 import functools
+import subprocess
+
 from dataclasses import dataclass
 from consts import to_compact_notation
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.options import Options
 
 @dataclass(init=True)
 class Replay:
@@ -99,7 +104,7 @@ def scrape_formats():
 
 
 @handle_request_exceptions
-def scrape_ladder_usernames(format: str):
+def scrape_ladders_usernames(format: str):
 
     logger.info(f"Scraping ladder for {format} format")
     url = f'https://pokemonshowdown.com/ladder/{format}.json'
@@ -113,13 +118,14 @@ def scrape_ladder_usernames(format: str):
     return usernames
 
 
+
 @handle_request_exceptions
-def scrape_players():
+def scrape_ladders():
     for format in consts.FORMATS:
         replays = []
         compact_format = to_compact_notation(format)
         logger.info(f"Requesting player data for format {compact_format}")
-        players = scrape_ladder_usernames(compact_format)
+        players = scrape_ladders_usernames(compact_format)
         for player in players:
             logger.debug(f"Requesting replays with player {player} format {format}")
             url = f"{URL}/search.json?user={player}&format={format}"
@@ -135,3 +141,69 @@ def scrape_players():
         logger.info(f"Total replays found {len(replays)}")
 
     return replays
+
+
+def scrape_members_usernames():
+    os.makedirs("tmp", exist_ok=True)
+    logging.info(f"Checking chrome installed")
+    # if not os.path.exists(f"{os.getcwd()}/tmp/chromedriver"):
+    #     subprocess.run(["curl", "-L", "https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip", "-o", "tmp/chromedriver.zip"])
+    #     subprocess.run(["unzip", "tmp/chromedriver.zip", "-d", "tmp/"])
+
+    if not os.path.exists(f"{os.getcwd()}/tmp/chrome-extracted"):
+        subprocess.run(["wget", "-P", f"{os.getcwd()}/tmp", "https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb"])
+        subprocess.run(["dpkg-deb", "-x", f"{os.getcwd()}/tmp/google-chrome-stable_current_amd64.deb", f"{os.getcwd()}/tmp/chrome-extracted/"])
+
+
+    # Set up headless Chrome options
+    chrome_options = Options()
+    chrome_options.binary_location = f"{os.getcwd()}/tmp/chrome-extracted/opt/google/chrome/google-chrome"
+    chrome_options.add_argument(f"--user-data-dir={os.getcwd()}/tmp/chrome-user-data")
+    chrome_options.add_argument("--headless")  # Ensure the browser runs in headless mode
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-extensions")
+
+    try:
+        # Set up the Chrome driver
+        driver = webdriver.Chrome(options=chrome_options)
+        usernames = []
+        for page in range(1, 10):
+            url = f'https://www.smogon.com/forums/online/?type=member&{page}'
+            driver.get(url)
+            driver.implicitly_wait(2)
+
+            # retrieve all username on the page
+            elements = driver.find_elements(By.CLASS_NAME, 'username')
+            usernames.extend([e.text for e in elements])
+            logging.info(f"Found {len(usernames)} online members")
+
+        driver.quit()
+        return usernames
+    except Exception as e:
+        logging.error(f"Error on selenium webdriver: {e}")
+        return []
+
+
+@handle_request_exceptions
+def scrape_members():
+    players = scrape_members_usernames()
+    replays = []
+
+    for format in consts.FORMATS:
+        for player in players:
+            logger.debug(f"Requesting replays with player {player} format {format}")
+            url = f"{URL}/search.json?user={player}&format={format}"
+            response = requests.get(url)
+            response.raise_for_status()
+
+            data = response.json()
+
+            for d in data:
+                replays.append(Replay(d["id"], d["format"], d["rating"]))
+
+            logger.info(f"Found {len(data)} replays for player {player} with format {format}")
+        logger.info(f"Total replays found {len(replays)}")
+
+    return replays
+

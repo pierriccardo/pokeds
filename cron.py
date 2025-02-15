@@ -7,16 +7,17 @@ import schedule
 import threading
 
 from dataclasses import dataclass
-from scraper import scrape_recents, scrape_formats, scrape_players, scrape_log
+from scraper import scrape_recents, scrape_formats, scrape_ladders, scrape_members, scrape_log
 from db import DB
 
 
 @dataclass
 class Wait:
-    #add_log: int = 10 # seconds
+    addlogs: int = 10 # seconds
     recents: int = 10 # seconds
-    formats: int = 600 # seconds
-    players: int = 600 # seconds
+    formats: int = 3600 # seconds
+    ladders: int = 3600 # seconds
+    members: int = 300 # seconds
 
 
 @dataclass
@@ -48,18 +49,32 @@ replays = []
 replays_lock = threading.Lock()
 
 def _scrape_recents():
+    logger.info(f"Starting job in thread: {threading.current_thread().name}")
     new_replays = scrape_recents()
-    replays.extend(new_replays)
+    with replays_lock:
+        replays.extend(new_replays)
 
 
 def _scrape_formats():
+    logger.info(f"Starting job in thread: {threading.current_thread().name}")
     new_replays = scrape_formats()
-    replays.extend(new_replays)
+    with replays_lock:
+        replays.extend(new_replays)
 
 
-def _scrape_players():
-    new_replays = scrape_players()
-    replays.extend(new_replays)
+def _scrape_ladders():
+    logger.info(f"Starting job in thread: {threading.current_thread().name}")
+    new_replays = scrape_ladders()
+    with replays_lock:
+        replays.extend(new_replays)
+
+
+def _scrape_members():
+    logger.info(f"Starting job in thread: {threading.current_thread().name}")
+    new_replays = scrape_members()
+    with replays_lock:
+        replays.extend(new_replays)
+
 
 def add_logs():
     while replays:
@@ -71,17 +86,20 @@ def add_logs():
 
 def run_threaded(job_func):
     job_thread = threading.Thread(target=job_func)
+    job_thread.daemon = True  # Daemon thread to ensure it doesn't block program termination
     job_thread.start()
 
 # run once, then run with scheduler
-_scrape_recents()
-_scrape_formats()
-_scrape_players()
+run_threaded(_scrape_recents)
+run_threaded(_scrape_formats)
+run_threaded(_scrape_ladders)
+run_threaded(_scrape_members)
 
-schedule.every(10).seconds.do(run_threaded, add_logs)
+schedule.every(args.wait.addlogs).seconds.do(run_threaded, add_logs)
 schedule.every(args.wait.recents).seconds.do(run_threaded, _scrape_recents)
 schedule.every(args.wait.formats).seconds.do(run_threaded, _scrape_formats)
-schedule.every(args.wait.players).seconds.do(run_threaded, _scrape_players)
+schedule.every(args.wait.ladders).seconds.do(run_threaded, _scrape_ladders)
+schedule.every(args.wait.members).seconds.do(run_threaded, _scrape_members)
 
 
 if __name__ == "__main__":

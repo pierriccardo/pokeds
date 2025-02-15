@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import consts
 import logging
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -80,6 +81,11 @@ class DB:
         cursor.execute("SELECT COUNT(*) FROM logs WHERE rating IS NULL")
         count = cursor.fetchone()[0]
         logger.info(f"Number of unrated: {count}")
+
+        for format in consts.FORMATS:
+            cursor.execute(f"SELECT COUNT(*) FROM logs WHERE format IS '{format}'")
+            count = cursor.fetchone()[0]
+            logger.info(f"Number per format: {count} {format}")
         conn.close()
 
     def count_logs_by_rating(self, rating_min, rating_max) -> int:

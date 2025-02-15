@@ -1,5 +1,7 @@
 matplotlib
 requests
 seaborn
+selenium
+webdriver-manager
 pandas
 tyro
