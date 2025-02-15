@@ -54,6 +54,6 @@ python3 stats.py
 to generate statistics about data in the db, currently the script generates images regardin total
 amount of data per format and also infomation of ELO per format:
 
-![img](imgs/elo_per_format.png)
-![img](imgs/samples_per_rating.png)
-![img](imgs/samples_per_format.png)
+<img src="imgs/elo_per_format.png" alt="drawing" width=250/>
+<img src="imgs/samples_per_rating.png" alt="drawing" width=250/>
+<img src="imgs/samples_per_format.png" alt="drawing" width=250/>
