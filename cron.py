@@ -14,10 +14,10 @@ from db import DB
 @dataclass
 class Wait:
     addlogs: int = 10 # seconds
-    recents: int = 10 # seconds
+    recents: int = 60 # seconds
     formats: int = 3600 # seconds
     ladders: int = 3600 # seconds
-    members: int = 300 # seconds
+    members: int = 600 # seconds
 
 
 @dataclass

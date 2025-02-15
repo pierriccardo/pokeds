@@ -98,7 +98,7 @@ def scrape_formats():
             for d in data:
                 replays.append(Replay(d["id"], d["format"], d["rating"]))
 
-            logger.info(f"Found {len(replays)} replays with format {format}")
+        logger.info(f"Found {len(replays)} replays with format {format}")
 
     return replays
 
@@ -137,7 +137,7 @@ def scrape_ladders():
             for d in data:
                 replays.append(Replay(d["id"], d["format"], d["rating"]))
 
-            logger.info(f"Found {len(data)} replays for player {player} with format {format}")
+        logger.info(f"Found {len(replays)} replays with format {format} from ladders")
         logger.info(f"Total replays found {len(replays)}")
 
     return replays
@@ -176,7 +176,8 @@ def scrape_members_usernames():
             # retrieve all username on the page
             elements = driver.find_elements(By.CLASS_NAME, 'username')
             usernames.extend([e.text for e in elements])
-            logging.info(f"Found {len(usernames)} online members")
+
+        logging.info(f"Found {len(usernames)} online members")
 
         driver.quit()
         return usernames
@@ -202,7 +203,7 @@ def scrape_members():
             for d in data:
                 replays.append(Replay(d["id"], d["format"], d["rating"]))
 
-            logger.info(f"Found {len(data)} replays for player {player} with format {format}")
+        logger.info(f"Found {len(replays)} replays with format {format} from members")
         logger.info(f"Total replays found {len(replays)}")
 
     return replays

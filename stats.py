@@ -1,4 +1,5 @@
 import os
+import consts
 import logger
 import logging
 import pandas as pd
@@ -10,10 +11,20 @@ from db import DB
 logger.setup()
 logger = logging.getLogger(__name__)
 
+sns.set_theme()
+sns.set_palette("bright")
+
+
+db = DB()
+os.makedirs("imgs", exist_ok=True)
+
+
 # --------------------------------------------------
 # Plotting stats
 # --------------------------------------------------
-def plot_samples_per_rating(ranges, counts, dir="imgs/"):
+def plot_samples_per_rating(dir="imgs/"):
+    ranges = gen_ranges(900, 2500, 100) # elo ranges
+    counts = [db.count_logs_by_rating(r_min, r_max) for r_min, r_max in ranges]
     x = [f"{r_min}-{r_max}" for r_min, r_max in ranges]
     plt.figure(figsize=(10, 5))
     ax = sns.barplot(x=x, y=counts)
@@ -25,10 +36,12 @@ def plot_samples_per_rating(ranges, counts, dir="imgs/"):
     plt.savefig(os.path.join(dir, "samples_per_rating"))
 
 
-def plot_samples_per_format(formats, counts, dir="imgs/", min_samples: int = 200):
+def plot_samples_per_format(dir="imgs/", min_samples: int = 200):
+    formats, counts = db.count_logs_by_format()
     df = pd.DataFrame({"Format": formats, "Count": counts})
     df = df[df["Count"] > min_samples]
-    plt.figure(figsize=(15, 6))
+    df = df[df['Format'].isin(consts.FORMATS)]
+    plt.figure(figsize=(10, 5))
     ax = sns.barplot(x="Format", y="Count", data=df)
     ax.bar_label(ax.containers[0], fontsize=7)
     plt.xlabel("Format")
@@ -38,33 +51,38 @@ def plot_samples_per_format(formats, counts, dir="imgs/", min_samples: int = 200
     plt.savefig(os.path.join(dir, "samples_per_format"))
 
 
-if __name__ == "__main__":
-    db = DB()
-    os.makedirs("imgs", exist_ok=True)
+def plot_elo_per_format():
+    ranges = gen_ranges(900, 2500, 100) # elo ranges
+    data = {"Range": [f"{start}-{end}" for start, end in ranges]}
+    for f in consts.FORMATS:
+        data[f] = [db.count_logs_by_rating(r_min, r_max, format=f) for r_min, r_max in ranges]
+    df = pd.DataFrame(data)
 
+    # Melt the DataFrame to long format for seaborn
+    df = pd.melt(df, id_vars=["Range"], value_vars=consts.FORMATS, var_name="Format", value_name="Count")
+
+    plt.figure(figsize=(10, 6))
+    sns.barplot(x="Range", y="Count", hue="Format", data=df)
+    plt.xticks(rotation=45)
+    plt.title("Barplot of Counts by Range and Format")
+    plt.tight_layout()
+    plt.savefig(os.path.join("imgs/", "elo_per_format"))
+
+
+def gen_ranges(start, end, step):
+    r = []
+    for x in range(start, end, step):
+        r.append((x, x + step))
+    return r
+
+if __name__ == "__main__":
     db.stats()
-    ranges = [
-        (800, 900),
-        (900, 1000),
-        (1000, 1100),
-        (1200, 1300),
-        (1300, 1400),
-        (1400, 1500),
-        (1500, 1600),
-        (1600, 1700),
-        (1700, 1800),
-        (1800, 1900),
-        (1900, 2000),
-        (2000, 2100),
-        (2100, 2200),
-        (2200, 2300),
-        (2300, 2400),
-        (2400, 2500),
-    ]
-    counts = [db.count_logs_by_rating(r_min, r_max) for r_min, r_max in ranges]
-    plot_samples_per_rating(ranges, counts)
-    formats, counts = db.count_logs_by_format()
-    # print(formats)
-    # print(counts)
-    # print(f"len format {len(formats)} len conu {len(counts)}")
-    plot_samples_per_format(formats, counts)
+
+    plot_samples_per_rating()
+    plot_samples_per_format()
+    plot_elo_per_format()
+
+
+
+
+

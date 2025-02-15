@@ -68,7 +68,6 @@ class DB:
     # Statistics
     # --------------------------------------------------
     def stats(self) -> dict:
-        print("ok")
         conn = self.connect()
         cursor = conn.cursor()
 
@@ -88,7 +87,7 @@ class DB:
             logger.info(f"Number per format: {count} {format}")
         conn.close()
 
-    def count_logs_by_rating(self, rating_min, rating_max) -> int:
+    def count_logs_by_rating(self, rating_min, rating_max, format: str = "") -> int:
         """
         Count how many logs with a ELO rating between `rating_min`
         and `rating_max` are present in the database.
@@ -96,10 +95,10 @@ class DB:
 
         conn = self.connect()
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT COUNT(*) FROM logs WHERE rating BETWEEN ? AND ?",
-            (rating_min, rating_max),
-        )
+        if format:
+            cursor.execute("SELECT COUNT(*) FROM logs WHERE rating BETWEEN ? AND ? AND format == ?", (rating_min, rating_max, format))
+        else:
+            cursor.execute("SELECT COUNT(*) FROM logs WHERE rating BETWEEN ? AND ?", (rating_min, rating_max))
         count = cursor.fetchone()[0]
         conn.close()
         return count
