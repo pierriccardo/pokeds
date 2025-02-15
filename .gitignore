@@ -1,5 +1,4 @@
 .DS_Store
-imgs/
 tmp/
 test.py
 logs.db

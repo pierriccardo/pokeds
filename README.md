@@ -45,3 +45,15 @@ To change the schedule time for each scraping function you can add the following
 ```bash
 python3 --wait.recents 10 --wait.formats 10 --wait.players 20
 ```
+## Logging statistics about collected data
+You can run:
+
+```bash
+python3 stats.py
+```
+to generate statistics about data in the db, currently the script generates images regardin total
+amount of data per format and also infomation of ELO per format:
+
+![img](imgs/elo_per_format.png)
+![img](imgs/samples_per_rating.png)
+![img](imgs/samples_per_format.png)
