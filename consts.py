@@ -4,7 +4,18 @@ FORMATS = [
     "[Gen 8] Random Battle",
     "[Gen 9] OU",
     "[Gen 9] Random Battle",
+    #"[Gen 8] OU",
 ]
+
+ROOMLIST = [
+    "lobby",
+    "tournaments",
+    "overused",
+    "randombattles",
+    "help"
+]
+
+RETRIES = 5
 
 # TODO: make it generic for every format
 def to_compact_notation(bracket_format):

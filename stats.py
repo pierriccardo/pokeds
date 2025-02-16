@@ -44,7 +44,7 @@ def plot_samples_per_format(dir="imgs/", min_samples: int = 200):
     plt.figure(figsize=(10, 5))
     ax = sns.barplot(x="Format", y="Count", data=df)
     ax.bar_label(ax.containers[0], fontsize=7)
-    plt.xlabel("Format")
+    plt.xlabel("Battle Format")
     plt.ylabel("Num. of logs in the DB")
     plt.xticks(rotation=90, fontsize=10)
     plt.tight_layout()
@@ -65,6 +65,8 @@ def plot_elo_per_format():
     sns.barplot(x="Range", y="Count", hue="Format", data=df)
     plt.xticks(rotation=45)
     plt.title("Barplot of Counts by Range and Format")
+    plt.xlabel("ELO Range")
+    plt.ylabel("Num. of logs in the DB")
     plt.tight_layout()
     plt.savefig(os.path.join("imgs/", "elo_per_format"))
 

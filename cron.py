@@ -7,7 +7,7 @@ import schedule
 import threading
 
 from dataclasses import dataclass
-from scraper import scrape_recents, scrape_formats, scrape_ladders, scrape_members, scrape_log
+from scraper import scrape_log, scrape_recents, scrape_formats, scrape_ladders, scrape_members, scrape_roomlst
 from db import DB
 
 
@@ -15,9 +15,10 @@ from db import DB
 class Wait:
     addlogs: int = 10 # seconds
     recents: int = 60 # seconds
-    formats: int = 3600 # seconds
-    ladders: int = 3600 # seconds
-    members: int = 600 # seconds
+    formats: int = 1800 # seconds
+    ladders: int = 1800 # seconds
+    members: int = 700 # seconds
+    roomlst: int = 600 # seconds
 
 
 @dataclass
@@ -76,12 +77,21 @@ def _scrape_members():
         replays.extend(new_replays)
 
 
+def _scrape_roomlst():
+    logger.info(f"Starting job in thread: {threading.current_thread().name}")
+    new_replays = scrape_roomlst()
+    with replays_lock:
+        replays.extend(new_replays)
+
+
 def add_logs():
-    while replays:
+    while True:
         with replays_lock:
+            if not replays:
+                return
             r = replays.pop()
-            if not db.exists(r.id):
-                db.add(r.id, r.format, r.rating, scrape_log(r.id))
+        if not db.exists(r.id):
+            db.add(r.id, r.format, r.rating, scrape_log(r.id))
 
 
 def run_threaded(job_func):
@@ -94,12 +104,15 @@ run_threaded(_scrape_recents)
 run_threaded(_scrape_formats)
 run_threaded(_scrape_ladders)
 run_threaded(_scrape_members)
+run_threaded(_scrape_roomlst)
+
 
 schedule.every(args.wait.addlogs).seconds.do(run_threaded, add_logs)
 schedule.every(args.wait.recents).seconds.do(run_threaded, _scrape_recents)
 schedule.every(args.wait.formats).seconds.do(run_threaded, _scrape_formats)
 schedule.every(args.wait.ladders).seconds.do(run_threaded, _scrape_ladders)
 schedule.every(args.wait.members).seconds.do(run_threaded, _scrape_members)
+schedule.every(args.wait.roomlst).seconds.do(run_threaded, _scrape_roomlst)
 
 
 if __name__ == "__main__":
