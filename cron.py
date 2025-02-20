@@ -15,10 +15,10 @@ from db import DB
 class Wait:
     addlogs: int = 10 # seconds
     recents: int = 60 # seconds
-    formats: int = 1800 # seconds
-    ladders: int = 1800 # seconds
-    members: int = 700 # seconds
-    roomlst: int = 600 # seconds
+    formats: int = 7200 # seconds
+    ladders: int = 7200 # seconds
+    members: int = 1800 # seconds
+    roomlst: int = 300 # seconds
 
 
 @dataclass
@@ -121,8 +121,6 @@ if __name__ == "__main__":
     db.stats()
 
     while True:
-        logger.debug(f"Number of Replays to add {len(replays)}")
-
         schedule.run_pending()
         if db.size() > args.size:
             logger.warning("Database has reached maximum size - terminating cron")
